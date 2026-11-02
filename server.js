@@ -903,7 +903,18 @@ app.get('*', (_req, res, next) => {
   res.sendFile(indexFile, (error) => (error ? next(error) : undefined));
 });
 
-app.listen(port, () => {
+const server = app.listen(port, () => {
   console.log(`[DataFlow Control] http://localhost:${port}`);
   console.log(`[DataFlow Control] n8n: ${n8nBaseUrl}`);
+});
+
+server.on('error', (error) => {
+  if (error.code === 'EADDRINUSE') {
+    console.error(
+      `[DataFlow Control] Port ${port} sudah dipakai proses lain. Hentikan proses itu (mis. \`npx kill-port ${port}\`) atau ganti PORT di .env.`,
+    );
+    process.exit(1);
+  }
+
+  throw error;
 });
