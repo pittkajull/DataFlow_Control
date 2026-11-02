@@ -2,6 +2,7 @@ import useDashboard from './hooks/useDashboard.js';
 import StatCards from './components/StatCards.jsx';
 import WorkflowTable from './components/WorkflowTable.jsx';
 import ExecutionTable from './components/ExecutionTable.jsx';
+import WorkflowLogPanel from './components/WorkflowLogPanel.jsx';
 
 function formatClock(value) {
   if (!value) return '--:--:--';
@@ -19,8 +20,12 @@ export default function App() {
     loading,
     lastUpdate,
     pendingIds,
+    runningIds,
+    stoppingIds,
     muat,
     toggleWorkflow,
+    runWorkflow,
+    stopExecution,
     setFilter,
   } = useDashboard();
 
@@ -164,18 +169,24 @@ export default function App() {
               workflows={workflows}
               filterId={filterId}
               pendingIds={pendingIds}
+              runningIds={runningIds}
               loading={loading}
               onFilter={setFilter}
               onToggle={toggleWorkflow}
+              onRun={runWorkflow}
             />
             <ExecutionTable
               executions={executions}
               workflows={workflows}
               filterId={filterId}
               loading={loading}
+              stoppingIds={stoppingIds}
+              onStop={stopExecution}
               onResetFilter={() => setFilter(filterId)}
             />
           </div>
+
+          <WorkflowLogPanel workflowName="Multi-Platform Shorts Clipper" />
         </main>
 
         <footer className="site-footer">

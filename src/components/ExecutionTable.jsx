@@ -42,6 +42,7 @@ function getDuration(startedAt, stoppedAt) {
 }
 
 function statusTone(status) {
+  if (status === 'running') return 'running';
   if (status === 'success') return 'success';
   if (status === 'error' || status === 'crashed') return 'error';
   return 'neutral';
@@ -52,6 +53,8 @@ export default function ExecutionTable({
   workflows,
   filterId,
   loading,
+  stoppingIds,
+  onStop,
   onResetFilter,
 }) {
   const [watchingId, setWatchingId] = useState(null);
@@ -133,6 +136,8 @@ export default function ExecutionTable({
             {executions.map((execution) => {
               const status = execution.status || 'unknown';
               const tone = statusTone(status);
+              const running = status === 'running';
+              const stopping = stoppingIds.includes(execution.id);
               const workflowName =
                 workflowNames.get(String(execution.workflowId)) ||
                 (execution.workflowId != null ? String(execution.workflowId) : '-');
@@ -158,9 +163,39 @@ export default function ExecutionTable({
                     </time>
                   </td>
                   <td className="duration-cell">
-                    {getDuration(execution.startedAt, execution.stoppedAt)}
+                    {getDuration(
+                      execution.startedAt,
+                      running ? new Date().toISOString() : execution.stoppedAt,
+                    )}
                   </td>
                   <td>
+                    <div
+                      style={{
+                        display: 'flex',
+                        gap: '6px',
+                        flexWrap: 'wrap',
+                      }}
+                    >
+                    {running && (
+                      <button
+                        type="button"
+                        onClick={() => onStop(execution.id)}
+                        disabled={stopping}
+                        title={stopping ? 'Sedang menghentikan…' : 'Hentikan eksekusi ini'}
+                        style={{
+                          padding: '4px 10px',
+                          borderRadius: '6px',
+                          border: '1px solid #7f2f30',
+                          background: '#2a1a1c',
+                          color: '#ff9d96',
+                          fontSize: '12px',
+                          cursor: stopping ? 'wait' : 'pointer',
+                          opacity: stopping ? 0.7 : 1,
+                        }}
+                      >
+                        {stopping ? 'Berhenti…' : 'Berhenti'}
+                      </button>
+                    )}
                     <button
                       type="button"
                       onClick={() => setWatchingId(execution.id)}
@@ -176,6 +211,7 @@ export default function ExecutionTable({
                     >
                       Pantau
                     </button>
+                    </div>
                   </td>
                 </tr>
               );

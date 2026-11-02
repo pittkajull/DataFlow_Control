@@ -1167,6 +1167,16 @@ h3 {
   color: var(--text-muted);
 }
 
+.status-badge.is-running {
+  border-color: rgba(245, 196, 81, 0.28);
+  background: rgba(245, 196, 81, 0.1);
+  color: #f5c451;
+}
+
+.status-badge.is-running .badge-dot {
+  animation: signal-pulse 1.4s ease-out infinite;
+}
+
 .mode-tag {
   display: inline-block;
   padding: 3px 6px;

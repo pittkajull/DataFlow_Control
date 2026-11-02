@@ -26,9 +26,11 @@ export default function WorkflowTable({
   workflows,
   filterId,
   pendingIds,
+  runningIds,
   loading,
   onFilter,
   onToggle,
+  onRun,
 }) {
   return (
     <section className="panel" aria-labelledby="workflow-panel-title">
@@ -53,6 +55,7 @@ export default function WorkflowTable({
             <tr>
               <th scope="col">Nama</th>
               <th scope="col">Toggle ON/OFF</th>
+              <th scope="col">Jalankan</th>
               <th scope="col">Waktu diubah</th>
             </tr>
           </thead>
@@ -60,6 +63,7 @@ export default function WorkflowTable({
             {workflows.map((workflow) => {
               const active = Boolean(workflow.active);
               const pending = pendingIds.includes(workflow.id);
+              const running = runningIds.includes(workflow.id);
               const filtered =
                 filterId !== null && String(filterId) === String(workflow.id);
               const name = workflow.name || 'Tanpa nama';
@@ -130,6 +134,30 @@ export default function WorkflowTable({
                       </span>
                       <span className="switch-text">{active ? 'ON' : 'OFF'}</span>
                       {pending && <span className="switch-spinner" aria-hidden="true" />}
+                    </button>
+                  </td>
+                  <td>
+                    <button
+                      type="button"
+                      onClick={(event) => {
+                        // Jangan sampai klik jalankan ikut memfilter tabel.
+                        event.stopPropagation();
+                        onRun(workflow.id);
+                      }}
+                      disabled={running}
+                      title={running ? 'Sedang dijalankan…' : 'Jalankan workflow sekarang'}
+                      style={{
+                        padding: '4px 10px',
+                        borderRadius: '6px',
+                        border: '1px solid #2f3a4d',
+                        background: '#1e2330',
+                        color: '#cfe3ff',
+                        fontSize: '12px',
+                        cursor: running ? 'wait' : 'pointer',
+                        opacity: running ? 0.7 : 1,
+                      }}
+                    >
+                      {running ? 'Menjalankan…' : 'Jalankan'}
                     </button>
                   </td>
                   <td className="date-cell">

@@ -18,7 +18,7 @@ function formatDuration(milliseconds) {
 }
 
 export default function LogViewer({ executionId, onClose }) {
-  const { status, nodes, explanation, loadingAI, error, reset } =
+  const { status, nodes, progress, explanation, loadingAI, error, reset, stopping, stop } =
     useWorkflowMonitor(executionId);
 
   if (!executionId) return null;
@@ -58,6 +58,48 @@ export default function LogViewer({ executionId, onClose }) {
           </div>
         </header>
 
+        {progress && progress.total > 0 && (
+          <section style={styles.progressBox} aria-live="polite">
+            <div style={styles.progressHead}>
+              <span style={styles.progressLabel}>
+                {running ? 'Sedang berjalan' : 'Progres'}
+              </span>
+              <span style={styles.progressValue}>
+                {progress.completed}/{progress.total} langkah · {progress.percent}%
+              </span>
+            </div>
+
+            <div style={styles.progressTrack} aria-hidden="true">
+              <span
+                style={{ ...styles.progressFill, width: `${progress.percent}%` }}
+              />
+            </div>
+
+            {progress.currentName && (
+              <div style={styles.currentBox}>
+                {progress.currentStatus === 'running' ? (
+                  <span style={styles.spinner} aria-hidden="true" />
+                ) : (
+                  <span style={styles.nextDot} aria-hidden="true" />
+                )}
+                <div style={styles.currentBody}>
+                  <strong style={styles.currentTitle}>
+                    {progress.currentStatus === 'running'
+                      ? 'Sekarang: '
+                      : 'Selanjutnya: '}
+                    {progress.currentName}
+                  </strong>
+                  {progress.currentExplanation && (
+                    <p style={styles.currentText}>
+                      {progress.currentExplanation}
+                    </p>
+                  )}
+                </div>
+              </div>
+            )}
+          </section>
+        )}
+
         {error && <div style={styles.errorBox}>{error}</div>}
 
         <section style={styles.aiBox} aria-live="polite">
@@ -90,22 +132,36 @@ export default function LogViewer({ executionId, onClose }) {
           ) : (
             <ul style={styles.list}>
               {nodes.map((node) => {
-                const failed = node.status === 'error';
+                const color =
+                  node.status === 'error'
+                    ? '#ff7b72'
+                    : node.status === 'running'
+                      ? '#f5c451'
+                      : node.status === 'pending'
+                        ? '#475569'
+                        : '#7ee2a8';
+
                 return (
                   <li key={node.name} style={styles.node}>
                     <span
-                      style={{
-                        ...styles.dot,
-                        background: failed ? '#ff7b72' : '#7ee2a8',
-                      }}
+                      style={{ ...styles.dot, background: color }}
                       aria-hidden="true"
                     />
                     <div style={styles.nodeBody}>
-                      <span style={styles.nodeName}>{node.name}</span>
-                      <span style={styles.nodeMeta}>
-                        {node.itemCount} data · {formatDuration(node.executionTime)}
+                      <span style={styles.nodeName}>
+                        {node.name}
+                        {node.status === 'running' && ' · sedang berjalan'}
+                        {node.status === 'pending' && ' · menunggu'}
                       </span>
-                      {failed && node.errorMessage && (
+                      {node.explanation && (
+                        <span style={styles.nodeExplain}>{node.explanation}</span>
+                      )}
+                      <span style={styles.nodeMeta}>
+                        {node.status === 'pending'
+                          ? 'Belum dijalankan'
+                          : `${node.itemCount} data · ${formatDuration(node.executionTime)}`}
+                      </span>
+                      {node.status === 'error' && node.errorMessage && (
                         <span style={styles.nodeError}>{node.errorMessage}</span>
                       )}
                     </div>
@@ -117,6 +173,16 @@ export default function LogViewer({ executionId, onClose }) {
         </section>
 
         <footer style={styles.footer}>
+          {running && (
+            <button
+              type="button"
+              style={styles.dangerButton}
+              onClick={stop}
+              disabled={stopping}
+            >
+              {stopping ? 'Menghentikan…' : 'Hentikan proses'}
+            </button>
+          )}
           <button type="button" style={styles.secondaryButton} onClick={reset}>
             Reset pantauan
           </button>
@@ -258,6 +324,74 @@ const styles = {
   nodeMeta: { fontSize: '12px', color: '#8b96ab' },
   nodeError: { fontSize: '12px', color: '#ff9d96', wordBreak: 'break-word' },
   empty: { margin: 0, fontSize: '13px', color: '#8b96ab' },
+  progressBox: {
+    marginTop: '16px',
+    padding: '14px',
+    borderRadius: '10px',
+    background: '#151a24',
+    border: '1px solid #2b3343',
+  },
+  progressHead: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: '10px',
+  },
+  progressLabel: {
+    fontSize: '11px',
+    fontWeight: 600,
+    letterSpacing: '0.14em',
+    textTransform: 'uppercase',
+    color: '#8b96ab',
+  },
+  progressValue: { fontSize: '12px', color: '#c7d0e0' },
+  progressTrack: {
+    marginTop: '10px',
+    height: '6px',
+    borderRadius: '999px',
+    background: '#232936',
+    overflow: 'hidden',
+  },
+  progressFill: {
+    display: 'block',
+    height: '100%',
+    borderRadius: '999px',
+    background: '#bdff74',
+    transition: 'width 400ms ease',
+  },
+  currentBox: {
+    display: 'flex',
+    alignItems: 'flex-start',
+    gap: '10px',
+    marginTop: '12px',
+    padding: '10px 12px',
+    borderRadius: '8px',
+    background: '#1e2330',
+    border: '1px solid #2b3343',
+  },
+  currentBody: { minWidth: 0 },
+  currentTitle: { fontSize: '13px', fontWeight: 600, color: '#e6ebf5' },
+  currentText: {
+    margin: '4px 0 0',
+    fontSize: '13px',
+    lineHeight: 1.55,
+    color: '#a9b4c7',
+  },
+  nextDot: {
+    display: 'inline-block',
+    width: '11px',
+    height: '11px',
+    marginTop: '3px',
+    borderRadius: '50%',
+    border: '2px solid #8b96ab',
+    flexShrink: 0,
+  },
+  nodeExplain: {
+    fontSize: '12px',
+    lineHeight: 1.5,
+    color: '#a9b4c7',
+    wordBreak: 'break-word',
+  },
   footer: {
     display: 'flex',
     justifyContent: 'flex-end',
@@ -270,6 +404,15 @@ const styles = {
     border: '1px solid #2b3343',
     background: 'transparent',
     color: '#c7d0e0',
+    fontSize: '13px',
+    cursor: 'pointer',
+  },
+  dangerButton: {
+    padding: '8px 14px',
+    borderRadius: '8px',
+    border: '1px solid #7f2f30',
+    background: '#2a1a1c',
+    color: '#ff9d96',
     fontSize: '13px',
     cursor: 'pointer',
   },

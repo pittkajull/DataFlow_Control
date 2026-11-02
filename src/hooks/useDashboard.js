@@ -48,6 +48,8 @@ export default function useDashboard() {
   const [loading, setLoading] = useState(true);
   const [lastUpdate, setLastUpdate] = useState(null);
   const [pendingIds, setPendingIds] = useState([]);
+  const [runningIds, setRunningIds] = useState([]);
+  const [stoppingIds, setStoppingIds] = useState([]);
   const activeRequest = useRef(null);
 
   const muat = useCallback(async () => {
@@ -60,17 +62,32 @@ export default function useDashboard() {
     const executionUrl = filterId
       ? `/api/executions?workflowId=${encodeURIComponent(filterId)}`
       : '/api/executions';
+    const runningUrl = filterId
+      ? `/api/executions?status=running&workflowId=${encodeURIComponent(filterId)}`
+      : '/api/executions?status=running';
 
     try {
-      const [workflowPayload, executionPayload] = await Promise.all([
-        requestJson('/api/workflows', { signal: controller.signal }),
-        requestJson(executionUrl, { signal: controller.signal }),
-      ]);
+      const [workflowPayload, executionPayload, runningPayload] =
+        await Promise.all([
+          requestJson('/api/workflows', { signal: controller.signal }),
+          requestJson(executionUrl, { signal: controller.signal }),
+          requestJson(runningUrl, { signal: controller.signal }),
+        ]);
 
       if (controller.signal.aborted) return;
 
+      // Eksekusi yang sedang berjalan dipastikan selalu tampil di daftar.
+      const runningList = toList(runningPayload);
+      const mergedExecutions = [
+        ...runningList,
+        ...toList(executionPayload).filter(
+          (execution) =>
+            !runningList.some((item) => item.id === execution.id),
+        ),
+      ];
+
       setWorkflows(toList(workflowPayload));
-      setExecutions(toList(executionPayload));
+      setExecutions(mergedExecutions);
       setError('');
       setLastUpdate(new Date());
     } catch (requestError) {
@@ -129,6 +146,64 @@ export default function useDashboard() {
     [muat],
   );
 
+  const runWorkflow = useCallback(
+    async (id) => {
+      if (id == null) return;
+
+      setRunningIds((current) =>
+        current.includes(id) ? current : [...current, id],
+      );
+      setError('');
+
+      try {
+        await requestJson(`/api/workflows/${encodeURIComponent(id)}/run`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: '{}',
+        });
+        await muat();
+      } catch (runError) {
+        if (runError.name === 'AbortError') return;
+        setError(
+          runError instanceof Error
+            ? runError.message
+            : 'Gagal menjalankan workflow.',
+        );
+      } finally {
+        setRunningIds((current) => current.filter((item) => item !== id));
+      }
+    },
+    [muat],
+  );
+
+  const stopExecution = useCallback(
+    async (id) => {
+      if (id == null) return;
+
+      setStoppingIds((current) =>
+        current.includes(id) ? current : [...current, id],
+      );
+      setError('');
+
+      try {
+        await requestJson(`/api/executions/${encodeURIComponent(id)}/stop`, {
+          method: 'POST',
+        });
+        await muat();
+      } catch (stopError) {
+        if (stopError.name === 'AbortError') return;
+        setError(
+          stopError instanceof Error
+            ? stopError.message
+            : 'Gagal menghentikan eksekusi.',
+        );
+      } finally {
+        setStoppingIds((current) => current.filter((item) => item !== id));
+      }
+    },
+    [muat],
+  );
+
   const setFilter = useCallback((id) => {
     if (id == null) return;
     setFilterId((current) =>
@@ -144,8 +219,12 @@ export default function useDashboard() {
     loading,
     lastUpdate,
     pendingIds,
+    runningIds,
+    stoppingIds,
     muat,
     toggleWorkflow,
+    runWorkflow,
+    stopExecution,
     setFilter,
   };
 }

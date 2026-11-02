@@ -14,7 +14,9 @@ export default function useWorkflowMonitor(executionId) {
   const [status, setStatus] = useState('idle');
   const [nodes, setNodes] = useState([]);
   const [explanation, setExplanation] = useState('');
+  const [progress, setProgress] = useState(null);
   const [loadingAI, setLoadingAI] = useState(false);
+  const [stopping, setStopping] = useState(false);
   const [error, setError] = useState('');
   const sourceRef = useRef(null);
   const closedRef = useRef(false);
@@ -34,6 +36,7 @@ export default function useWorkflowMonitor(executionId) {
     setStatus('running');
     setNodes([]);
     setExplanation('');
+    setProgress(null);
     setLoadingAI(false);
     setError('');
 
@@ -92,6 +95,7 @@ export default function useWorkflowMonitor(executionId) {
       nodesRef.current = list;
       setStatus(data.status || 'running');
       setNodes(list);
+      if (data.progress) setProgress(data.progress);
     });
 
     source.addEventListener('done', (event) => {
@@ -130,6 +134,40 @@ export default function useWorkflowMonitor(executionId) {
     };
   }, [executionId]);
 
+  // Hentikan eksekusi yang sedang dipantau; stream akan menangkap status akhirnya.
+  const stop = useCallback(async () => {
+    if (!executionId) return;
+
+    setStopping(true);
+
+    try {
+      const response = await fetch(
+        `/api/executions/${encodeURIComponent(executionId)}/stop`,
+        { method: 'POST', headers: { Accept: 'application/json' } },
+      );
+
+      const payload = await response.json().catch(() => null);
+
+      if (!response.ok) {
+        throw new Error(
+          payload?.error || `Permintaan gagal (HTTP ${response.status}).`,
+        );
+      }
+
+      setError('');
+    } catch (stopError) {
+      if (!closedRef.current) {
+        setError(
+          stopError instanceof Error
+            ? stopError.message
+            : 'Gagal menghentikan eksekusi.',
+        );
+      }
+    } finally {
+      if (!closedRef.current) setStopping(false);
+    }
+  }, [executionId]);
+
   const reset = useCallback(() => {
     closedRef.current = true;
     sourceRef.current?.close();
@@ -138,10 +176,21 @@ export default function useWorkflowMonitor(executionId) {
     nodesRef.current = [];
     setStatus('idle');
     setNodes([]);
+    setProgress(null);
     setExplanation('');
     setLoadingAI(false);
     setError('');
   }, []);
 
-  return { status, nodes, explanation, loadingAI, error, reset };
+  return {
+    status,
+    nodes,
+    progress,
+    explanation,
+    loadingAI,
+    error,
+    reset,
+    stopping,
+    stop,
+  };
 }
