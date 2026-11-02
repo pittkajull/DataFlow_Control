@@ -1,0 +1,37 @@
+# Dependensi
+node_modules/
+
+# Hasil build & cache
+dist/
+.vite/
+coverage/
+
+# Rahasia & konfigurasi lokal
+.env
+.env.*
+!.env.example
+
+# Kunci privat, sertifikat, dan file kredensial
+*.pem
+*.key
+*.p12
+*.pfx
+*.jks
+*.keystore
+id_rsa*
+id_ed25519*
+.npmrc
+.netrc
+credentials.json
+service-account*.json
+
+# Log
+*.log
+npm-debug.log*
+
+# OS & editor
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/
+.idea/
