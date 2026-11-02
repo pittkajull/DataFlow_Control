@@ -1,3 +1,6 @@
+import { useState } from 'react';
+import LogViewer from './LogViewer.jsx';
+
 const dateFormatter = new Intl.DateTimeFormat('id-ID', {
   day: '2-digit',
   month: 'short',
@@ -51,6 +54,7 @@ export default function ExecutionTable({
   loading,
   onResetFilter,
 }) {
+  const [watchingId, setWatchingId] = useState(null);
   const workflowNames = new Map(
     workflows.map((workflow) => [String(workflow.id), workflow.name]),
   );
@@ -122,6 +126,7 @@ export default function ExecutionTable({
               <th scope="col">Mode</th>
               <th scope="col">Waktu mulai</th>
               <th scope="col">Durasi</th>
+              <th scope="col">Pantau</th>
             </tr>
           </thead>
           <tbody>
@@ -155,6 +160,23 @@ export default function ExecutionTable({
                   <td className="duration-cell">
                     {getDuration(execution.startedAt, execution.stoppedAt)}
                   </td>
+                  <td>
+                    <button
+                      type="button"
+                      onClick={() => setWatchingId(execution.id)}
+                      style={{
+                        padding: '4px 10px',
+                        borderRadius: '6px',
+                        border: '1px solid #2f3a4d',
+                        background: '#1e2330',
+                        color: '#cfe3ff',
+                        fontSize: '12px',
+                        cursor: 'pointer',
+                      }}
+                    >
+                      Pantau
+                    </button>
+                  </td>
                 </tr>
               );
             })}
@@ -177,6 +199,11 @@ export default function ExecutionTable({
           </div>
         )}
       </div>
+
+      <LogViewer
+        executionId={watchingId}
+        onClose={() => setWatchingId(null)}
+      />
     </section>
   );
 }
