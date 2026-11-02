@@ -787,9 +787,10 @@ const delay = (ms) =>
   });
 
 // n8n hanya menyimpan progres antar-node bila opsi ini aktif pada workflow.
-async function ensureProgressSaving(workflowId) {
+async function ensureProgressSaving(workflowId, existing) {
   try {
-    const workflow = await callN8n(`/workflows/${encodeURIComponent(workflowId)}`);
+    const workflow =
+      existing ?? (await callN8n(`/workflows/${encodeURIComponent(workflowId)}`));
     if (workflow?.settings?.saveExecutionProgress === true) return true;
 
     // Public API tidak menerima PATCH; ubah lewat endpoint internal n8n.
@@ -817,6 +818,31 @@ async function ensureProgressSaving(workflowId) {
   }
 }
 
+// n8n butuh nama node awal; pakai node pemicu yang ada di workflow.
+function pickTriggerNode(workflow) {
+  const nodes = Array.isArray(workflow?.nodes) ? workflow.nodes : [];
+  if (nodes.length === 0) return '';
+
+  const incoming = new Set();
+  for (const outputs of Object.values(workflow.connections || {})) {
+    for (const group of outputs?.main || []) {
+      for (const link of group || []) {
+        if (link?.node) incoming.add(link.node);
+      }
+    }
+  }
+
+  const isTrigger = (node) =>
+    /trigger|webhook|cron|schedule|start/i.test(String(node?.type || ''));
+
+  return (
+    nodes.find((node) => isTrigger(node) && !incoming.has(node.name))?.name ||
+    nodes.find(isTrigger)?.name ||
+    nodes.find((node) => !incoming.has(node.name))?.name ||
+    nodes[0].name
+  );
+}
+
 app.post(
   '/api/workflows/:id/run',
   proxyRoute(async (req, res) => {
@@ -828,13 +854,23 @@ app.post(
 
     const workflowId = req.params.id;
     const id = encodeURIComponent(workflowId);
-    const progressEnabled = await ensureProgressSaving(workflowId);
+    const workflow = await callN8n(
+      `/workflows/${encodeURIComponent(workflowId)}`,
+    ).catch(() => null);
+    const progressEnabled = await ensureProgressSaving(workflowId, workflow);
+    const triggerName = pickTriggerNode(workflow);
+
+    if (!triggerName) {
+      return res
+        .status(422)
+        .json({ error: 'Workflow ini tidak punya node yang bisa dijalankan.' });
+    }
 
     // Endpoint /rest n8n menahan koneksi sampai eksekusi selesai, jadi
     // jangan biarkan browser ikut menunggu selama itu.
     const runRequest = callN8nRest(`/rest/workflows/${id}/run`, {
       method: 'POST',
-      body: '{}',
+      body: JSON.stringify({ triggerToStartFrom: { name: triggerName } }),
     }).then(async (response) => {
       const raw = await response.text();
       if (!response.ok) {
@@ -846,18 +882,33 @@ app.post(
     });
 
     const outcome = await Promise.race([
-      runRequest.then(() => null).catch((error) => error),
+      runRequest.then((raw) => ({ raw })).catch((error) => ({ error })),
       delay(ACTION_SETTLE_MS).then(() => 'timeout'),
     ]);
 
     if (outcome === 'timeout') {
       runRequest.catch(() => {});
-      return res.status(202).json({ ok: true, started: true, progressEnabled });
+      return res
+        .status(202)
+        .json({ ok: true, started: true, triggerName, progressEnabled });
     }
 
-    if (outcome instanceof Error) throw outcome;
+    if (outcome.error) throw outcome.error;
 
-    return res.json({ ok: true, started: true, progressEnabled });
+    let waitingForWebhook = false;
+    try {
+      waitingForWebhook = JSON.parse(outcome.raw)?.waitingForWebhook === true;
+    } catch {
+      waitingForWebhook = false;
+    }
+
+    return res.json({
+      ok: true,
+      started: !waitingForWebhook,
+      waitingForWebhook,
+      triggerName,
+      progressEnabled,
+    });
   }),
 );
 

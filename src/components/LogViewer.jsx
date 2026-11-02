@@ -94,7 +94,7 @@ export default function LogViewer({ executionId, onClose }) {
                   <strong style={styles.currentTitle}>
                     {progress.currentStatus === 'running'
                       ? 'Sekarang: '
-                      : 'Selanjutnya: '}
+                      : 'Langkah saat ini: '}
                     {progress.currentName}
                   </strong>
                   {progress.currentExplanation && (
