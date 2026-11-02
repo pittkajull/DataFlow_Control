@@ -716,6 +716,12 @@ async function loginN8n() {
 
   const raw = await response.text();
 
+  if (response.status === 401 || response.status === 403) {
+    throw new Error(
+      'Login ke n8n ditolak. Periksa N8N_EMAIL dan N8N_PASSWORD di .env — nilai yang mengandung karakter # harus diapit tanda kutip, misalnya N8N_PASSWORD="kata#sandi".',
+    );
+  }
+
   if (!response.ok) {
     throw new Error(
       `Login ke n8n gagal (${response.status}): ${cleanMessage(raw) || response.statusText}`,

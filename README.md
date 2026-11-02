@@ -58,6 +58,12 @@ Dashboard gelap berbahasa Indonesia untuk memantau, menjalankan, dan menghentika
 
    `.env` hanya dibaca saat server start; restart server setiap kali nilainya berubah.
 
+   Nilai yang mengandung karakter `#` wajib diapit tanda kutip, karena tanpa itu `#` dianggap awal komentar:
+
+   ```dotenv
+   N8N_PASSWORD="kata#sandi"
+   ```
+
 ## Menjalankan
 
 ### Produksi (satu port, satu proses)
