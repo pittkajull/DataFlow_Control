@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import LogViewer from './LogViewer.jsx';
 
 const dateFormatter = new Intl.DateTimeFormat('id-ID', {
@@ -55,9 +54,10 @@ export default function ExecutionTable({
   loading,
   stoppingIds,
   onStop,
+  watchingId,
+  onWatch,
   onResetFilter,
 }) {
-  const [watchingId, setWatchingId] = useState(null);
   const workflowNames = new Map(
     workflows.map((workflow) => [String(workflow.id), workflow.name]),
   );
@@ -198,7 +198,7 @@ export default function ExecutionTable({
                     )}
                     <button
                       type="button"
-                      onClick={() => setWatchingId(execution.id)}
+                      onClick={() => onWatch(execution.id)}
                       style={{
                         padding: '4px 10px',
                         borderRadius: '6px',
@@ -238,7 +238,7 @@ export default function ExecutionTable({
 
       <LogViewer
         executionId={watchingId}
-        onClose={() => setWatchingId(null)}
+        onClose={() => onWatch(null)}
       />
     </section>
   );

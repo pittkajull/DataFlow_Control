@@ -90,13 +90,15 @@ export default function useDashboard() {
       setExecutions(mergedExecutions);
       setError('');
       setLastUpdate(new Date());
+      return mergedExecutions;
     } catch (requestError) {
-      if (controller.signal.aborted) return;
+      if (controller.signal.aborted) return null;
       setError(
         requestError instanceof Error
           ? requestError.message
           : 'Gagal memuat data dari n8n.',
       );
+      return null;
     } finally {
       if (activeRequest.current === controller) {
         activeRequest.current = null;
@@ -160,8 +162,18 @@ export default function useDashboard() {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: '{}',
+          signal: AbortSignal.timeout(30_000),
         });
-        await muat();
+
+        // Buka eksekusi yang baru berjalan supaya progresnya langsung terlihat.
+        const list = await muat();
+        const running = list?.find(
+          (execution) =>
+            String(execution.workflowId) === String(id) &&
+            ['running', 'new', 'waiting'].includes(execution.status),
+        );
+
+        return running?.id ?? null;
       } catch (runError) {
         if (runError.name === 'AbortError') return;
         setError(
@@ -169,6 +181,7 @@ export default function useDashboard() {
             ? runError.message
             : 'Gagal menjalankan workflow.',
         );
+        return null;
       } finally {
         setRunningIds((current) => current.filter((item) => item !== id));
       }
@@ -188,6 +201,7 @@ export default function useDashboard() {
       try {
         await requestJson(`/api/executions/${encodeURIComponent(id)}/stop`, {
           method: 'POST',
+          signal: AbortSignal.timeout(30_000),
         });
         await muat();
       } catch (stopError) {

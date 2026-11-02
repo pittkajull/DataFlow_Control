@@ -1,36 +1,66 @@
 import { useState, useEffect, useRef } from 'react';
 
+const RETRY_DELAY = 3_000;
+
 export function useWorkflowLogs() {
   const [logs, setLogs] = useState({});
-  const esRef = useRef(null);
+  const sourceRef = useRef(null);
 
   useEffect(() => {
-    fetch('/api/log/history')
-      .then(r => r.json())
-      .then(data => setLogs(data))
-      .catch(() => {});
+    let closed = false;
+    let retryTimer = null;
 
-    const es = new EventSource('/api/log/stream');
-    esRef.current = es;
+    const handleLog = (event) => {
+      let entry = null;
 
-    es.addEventListener('log', (e) => {
-      const entry = JSON.parse(e.data);
-      const { workflowName, ...rest } = entry;
-      setLogs(prev => {
+      try {
+        entry = JSON.parse(event.data);
+      } catch {
+        return;
+      }
+
+      const { workflowName, ...rest } = entry || {};
+      if (!workflowName) return;
+
+      setLogs((prev) => {
         const existing = prev[workflowName] || [];
-        const updated = [...existing, rest].slice(-100);
-        return { ...prev, [workflowName]: updated };
+        return { ...prev, [workflowName]: [...existing, rest].slice(-100) };
       });
-    });
-
-    es.onerror = () => {
-      setTimeout(() => {
-        const newEs = new EventSource('/api/log/stream');
-        esRef.current = newEs;
-      }, 3000);
     };
 
-    return () => es.close();
+    // Satu koneksi aktif saja: tutup yang lama sebelum mencoba lagi.
+    const connect = () => {
+      if (closed) return;
+
+      const source = new EventSource('/api/log/stream');
+      sourceRef.current = source;
+      source.addEventListener('log', handleLog);
+
+      source.addEventListener('error', () => {
+        source.close();
+        if (sourceRef.current === source) sourceRef.current = null;
+        if (closed) return;
+
+        window.clearTimeout(retryTimer);
+        retryTimer = window.setTimeout(connect, RETRY_DELAY);
+      });
+    };
+
+    fetch('/api/log/history', { headers: { Accept: 'application/json' } })
+      .then((response) => (response.ok ? response.json() : null))
+      .then((data) => {
+        if (!closed && data) setLogs(data);
+      })
+      .catch(() => {});
+
+    connect();
+
+    return () => {
+      closed = true;
+      window.clearTimeout(retryTimer);
+      sourceRef.current?.close();
+      sourceRef.current = null;
+    };
   }, []);
 
   const getLogsFor = (workflowName) => logs[workflowName] || [];

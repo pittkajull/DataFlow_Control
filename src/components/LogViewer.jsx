@@ -75,6 +75,14 @@ export default function LogViewer({ executionId, onClose }) {
               />
             </div>
 
+            {running && progress.completed === 0 && (
+              <p style={styles.hintText}>
+                n8n belum mengirim rincian langkah. Jalankan workflow lewat
+                tombol Jalankan di dashboard agar opsi “Save execution
+                progress” ikut aktif.
+              </p>
+            )}
+
             {progress.currentName && (
               <div style={styles.currentBox}>
                 {progress.currentStatus === 'running' ? (
@@ -385,6 +393,12 @@ const styles = {
     borderRadius: '50%',
     border: '2px solid #8b96ab',
     flexShrink: 0,
+  },
+  hintText: {
+    margin: '10px 0 0',
+    fontSize: '12px',
+    lineHeight: 1.55,
+    color: '#8b96ab',
   },
   nodeExplain: {
     fontSize: '12px',

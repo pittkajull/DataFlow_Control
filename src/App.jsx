@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import useDashboard from './hooks/useDashboard.js';
 import StatCards from './components/StatCards.jsx';
 import WorkflowTable from './components/WorkflowTable.jsx';
@@ -28,6 +29,13 @@ export default function App() {
     stopExecution,
     setFilter,
   } = useDashboard();
+  const [watchingId, setWatchingId] = useState(null);
+
+  // Setelah workflow dijalankan, langsung buka panel pantau eksekusinya.
+  const handleRun = async (id) => {
+    const executionId = await runWorkflow(id);
+    if (executionId != null) setWatchingId(executionId);
+  };
 
   const syncState = error ? 'GANGGUAN' : loading ? 'SINKRON' : 'SIAGA';
 
@@ -173,7 +181,7 @@ export default function App() {
               loading={loading}
               onFilter={setFilter}
               onToggle={toggleWorkflow}
-              onRun={runWorkflow}
+              onRun={handleRun}
             />
             <ExecutionTable
               executions={executions}
@@ -182,6 +190,8 @@ export default function App() {
               loading={loading}
               stoppingIds={stoppingIds}
               onStop={stopExecution}
+              watchingId={watchingId}
+              onWatch={setWatchingId}
               onResetFilter={() => setFilter(filterId)}
             />
           </div>

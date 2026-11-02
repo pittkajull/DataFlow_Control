@@ -777,6 +777,46 @@ async function callN8nRest(pathname, options = {}) {
   return result.response;
 }
 
+// Berapa lama menunggu jawaban n8n sebelum dianggap "sudah mulai".
+const ACTION_SETTLE_MS = 4_000;
+
+const delay = (ms) =>
+  new Promise((resolve) => {
+    const timer = setTimeout(resolve, ms);
+    if (typeof timer.unref === 'function') timer.unref();
+  });
+
+// n8n hanya menyimpan progres antar-node bila opsi ini aktif pada workflow.
+async function ensureProgressSaving(workflowId) {
+  try {
+    const workflow = await callN8n(`/workflows/${encodeURIComponent(workflowId)}`);
+    if (workflow?.settings?.saveExecutionProgress === true) return true;
+
+    // Public API tidak menerima PATCH; ubah lewat endpoint internal n8n.
+    const response = await callN8nRest(
+      `/rest/workflows/${encodeURIComponent(workflowId)}`,
+      {
+        method: 'PATCH',
+        body: JSON.stringify({
+          settings: { ...(workflow?.settings || {}), saveExecutionProgress: true },
+        }),
+      },
+    );
+
+    if (!response.ok) {
+      throw new Error(`n8n menolak perubahan settings (${response.status})`);
+    }
+
+    console.log(`[n8n] saveExecutionProgress diaktifkan untuk ${workflowId}`);
+    return true;
+  } catch (error) {
+    console.error(
+      `[n8n] gagal mengaktifkan saveExecutionProgress: ${error.message}`,
+    );
+    return false;
+  }
+}
+
 app.post(
   '/api/workflows/:id/run',
   proxyRoute(async (req, res) => {
@@ -786,27 +826,38 @@ app.post(
       });
     }
 
-    const id = encodeURIComponent(req.params.id);
-    const response = await callN8nRest(`/rest/workflows/${id}/run`, {
+    const workflowId = req.params.id;
+    const id = encodeURIComponent(workflowId);
+    const progressEnabled = await ensureProgressSaving(workflowId);
+
+    // Endpoint /rest n8n menahan koneksi sampai eksekusi selesai, jadi
+    // jangan biarkan browser ikut menunggu selama itu.
+    const runRequest = callN8nRest(`/rest/workflows/${id}/run`, {
       method: 'POST',
       body: '{}',
+    }).then(async (response) => {
+      const raw = await response.text();
+      if (!response.ok) {
+        throw new Error(
+          `n8n (${response.status}): ${cleanMessage(raw) || response.statusText}`,
+        );
+      }
+      return raw;
     });
 
-    const raw = await response.text();
+    const outcome = await Promise.race([
+      runRequest.then(() => null).catch((error) => error),
+      delay(ACTION_SETTLE_MS).then(() => 'timeout'),
+    ]);
 
-    if (!response.ok) {
-      throw new Error(
-        `n8n (${response.status}): ${cleanMessage(raw) || response.statusText}`,
-      );
+    if (outcome === 'timeout') {
+      runRequest.catch(() => {});
+      return res.status(202).json({ ok: true, started: true, progressEnabled });
     }
 
-    if (!raw) return res.json({ ok: true });
+    if (outcome instanceof Error) throw outcome;
 
-    try {
-      return res.json(JSON.parse(raw));
-    } catch {
-      return res.json({ ok: true });
-    }
+    return res.json({ ok: true, started: true, progressEnabled });
   }),
 );
 
@@ -814,7 +865,21 @@ app.post(
   '/api/executions/:id/stop',
   proxyRoute(async (req, res) => {
     const id = encodeURIComponent(req.params.id);
-    res.json(await callN8n(`/executions/${id}/stop`, { method: 'POST' }));
+    const stopRequest = callN8n(`/executions/${id}/stop`, { method: 'POST' });
+
+    const outcome = await Promise.race([
+      stopRequest.then(() => null).catch((error) => error),
+      delay(ACTION_SETTLE_MS).then(() => 'timeout'),
+    ]);
+
+    if (outcome === 'timeout') {
+      stopRequest.catch(() => {});
+      return res.status(202).json({ ok: true, stopping: true });
+    }
+
+    if (outcome instanceof Error) throw outcome;
+
+    return res.json({ ok: true, stopped: true });
   }),
 );
 
