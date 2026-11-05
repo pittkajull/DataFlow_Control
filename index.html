@@ -11,6 +11,13 @@
         if (savedTheme === 'light' || savedTheme === 'dark') {
           document.documentElement.dataset.theme = savedTheme;
         }
+        var savedScale = Number(localStorage.getItem('dataflow-text-scale'));
+        if (savedScale >= 0.9 && savedScale <= 1.4) {
+          document.documentElement.style.setProperty(
+            '--text-scale',
+            String(savedScale),
+          );
+        }
       } catch (error) {
         /* localStorage bisa diblokir; abaikan. */
       }

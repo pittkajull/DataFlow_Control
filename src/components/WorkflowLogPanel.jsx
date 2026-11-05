@@ -29,7 +29,7 @@ export default function WorkflowLogPanel({ workflowName }) {
     >
       <div
         style={{
-          fontSize: 11,
+          fontSize: '0.6875rem',
           fontWeight: 600,
           color: 'var(--lime)',
           textTransform: 'uppercase',
@@ -43,7 +43,7 @@ export default function WorkflowLogPanel({ workflowName }) {
       {logs.length === 0 ? (
         <div
           style={{
-            fontSize: 13,
+            fontSize: '0.8125rem',
             color: 'var(--text-muted)',
             textAlign: 'center',
             padding: '18px 0',
@@ -85,10 +85,10 @@ export default function WorkflowLogPanel({ workflowName }) {
                 }}
               />
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: 13, color: 'var(--text)', lineHeight: 1.6 }}>
+                <div style={{ fontSize: '0.8125rem', color: 'var(--text)', lineHeight: 1.6 }}>
                   {log.message}
                 </div>
-                <div style={{ fontSize: 11.5, color: 'var(--text-muted)', marginTop: 3 }}>
+                <div style={{ fontSize: '0.7188rem', color: 'var(--text-muted)', marginTop: 3 }}>
                   {log.nodeName} · {timeAgo(log.timestamp)}
                 </div>
               </div>

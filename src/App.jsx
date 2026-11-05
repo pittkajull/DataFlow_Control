@@ -6,6 +6,8 @@ import ExecutionTable from './components/ExecutionTable.jsx';
 import WorkflowLogPanel from './components/WorkflowLogPanel.jsx';
 
 const THEME_KEY = 'dataflow-theme';
+const TEXT_SCALE_KEY = 'dataflow-text-scale';
+const TEXT_SCALES = [0.9, 1, 1.1, 1.25, 1.4];
 
 function readStoredTheme() {
   try {
@@ -15,6 +17,16 @@ function readStoredTheme() {
     // localStorage bisa diblokir browser; pakai tema bawaan.
   }
   return 'dark';
+}
+
+function readStoredTextScale() {
+  try {
+    const saved = Number(window.localStorage.getItem(TEXT_SCALE_KEY));
+    if (TEXT_SCALES.includes(saved)) return saved;
+  } catch {
+    // localStorage bisa diblokir browser; pakai ukuran bawaan.
+  }
+  return 1;
 }
 
 function formatClock(value) {
@@ -43,6 +55,8 @@ export default function App() {
   } = useDashboard();
   const [watchingId, setWatchingId] = useState(null);
   const [theme, setTheme] = useState(readStoredTheme);
+  const [textScale, setTextScale] = useState(readStoredTextScale);
+  const scaleIndex = TEXT_SCALES.indexOf(textScale);
 
   // Tema disimpan di <html data-theme> supaya semua token CSS ikut berganti.
   useEffect(() => {
@@ -53,6 +67,19 @@ export default function App() {
       // Abaikan bila penyimpanan tidak tersedia.
     }
   }, [theme]);
+
+  // Skala teks menggeser font-size akar; semua ukuran rem ikut membesar.
+  useEffect(() => {
+    document.documentElement.style.setProperty(
+      '--text-scale',
+      String(textScale),
+    );
+    try {
+      window.localStorage.setItem(TEXT_SCALE_KEY, String(textScale));
+    } catch {
+      // Abaikan bila penyimpanan tidak tersedia.
+    }
+  }, [textScale]);
 
   // Setelah workflow dijalankan, langsung buka panel pantau eksekusinya.
   const handleRun = async (id) => {
@@ -138,6 +165,46 @@ export default function App() {
                   {theme === 'dark' ? 'Terang' : 'Gelap'}
                 </span>
               </button>
+
+              <div className="text-scale" role="group" aria-label="Ukuran teks">
+                <button
+                  type="button"
+                  className="text-scale-btn"
+                  onClick={() =>
+                    setTextScale(TEXT_SCALES[Math.max(scaleIndex - 1, 0)])
+                  }
+                  disabled={scaleIndex <= 0}
+                  aria-label="Perkecil ukuran teks"
+                  title="Perkecil ukuran teks"
+                >
+                  A−
+                </button>
+                <button
+                  type="button"
+                  className="text-scale-value"
+                  onClick={() => setTextScale(1)}
+                  title="Kembalikan ke 100%"
+                  aria-label={`Ukuran teks ${Math.round(textScale * 100)} persen, klik untuk kembali ke 100 persen`}
+                >
+                  {Math.round(textScale * 100)}%
+                </button>
+                <button
+                  type="button"
+                  className="text-scale-btn"
+                  onClick={() =>
+                    setTextScale(
+                      TEXT_SCALES[
+                        Math.min(scaleIndex + 1, TEXT_SCALES.length - 1)
+                      ],
+                    )
+                  }
+                  disabled={scaleIndex >= TEXT_SCALES.length - 1}
+                  aria-label="Perbesar ukuran teks"
+                  title="Perbesar ukuran teks"
+                >
+                  A+
+                </button>
+              </div>
             </div>
           </div>
 
