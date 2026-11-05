@@ -225,7 +225,7 @@ h3 {
   align-items: center;
   justify-content: space-between;
   gap: 24px;
-  min-height: 82px;
+  min-height: 72px;
   border-bottom: 1px solid var(--line);
 }
 
@@ -356,10 +356,10 @@ h3 {
 /* Hero */
 .hero {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 338px;
-  gap: clamp(32px, 5vw, 72px);
+  grid-template-columns: minmax(0, 1fr) 322px;
+  gap: clamp(28px, 4vw, 56px);
   align-items: end;
-  padding: clamp(54px, 7vw, 88px) 0 clamp(42px, 5vw, 62px);
+  padding: clamp(24px, 2.8vw, 40px) 0 clamp(20px, 2.2vw, 30px);
 }
 
 .hero-copy {
@@ -370,7 +370,7 @@ h3 {
   display: flex;
   align-items: center;
   gap: 10px;
-  margin-bottom: 22px;
+  margin-bottom: 14px;
   color: var(--lime);
   font-family: var(--font-mono);
   font-size: 11px;
@@ -393,10 +393,10 @@ h3 {
   max-width: 900px;
   color: var(--text);
   font-family: var(--font-display);
-  font-size: clamp(3.15rem, 6.3vw, 6.35rem);
+  font-size: clamp(2.5rem, 4.4vw, 4.05rem);
   font-weight: 800;
-  letter-spacing: -0.067em;
-  line-height: 0.9;
+  letter-spacing: -0.06em;
+  line-height: 0.95;
 }
 
 .hero h1 span {
@@ -405,16 +405,16 @@ h3 {
 
 .hero-subtitle {
   max-width: 480px;
-  margin-top: 24px;
+  margin-top: 12px;
   color: var(--text-soft);
-  font-size: 16px;
+  font-size: 15px;
   letter-spacing: 0.005em;
 }
 
 .hero-console {
   position: relative;
   width: 100%;
-  padding: 18px;
+  padding: 15px 16px;
   border: 1px solid var(--line);
   border-radius: var(--radius-lg);
   background: linear-gradient(150deg, var(--panel-a), var(--panel-b)), var(--surface);
@@ -468,7 +468,7 @@ h3 {
   align-items: baseline;
   justify-content: space-between;
   gap: 16px;
-  margin: 25px 0 17px;
+  margin: 15px 0 12px;
 }
 
 .console-readout > span {
@@ -479,7 +479,7 @@ h3 {
 .console-readout strong {
   color: var(--text);
   font-family: var(--font-mono);
-  font-size: 25px;
+  font-size: 21px;
   font-weight: 500;
   letter-spacing: -0.05em;
   font-variant-numeric: tabular-nums;
@@ -534,8 +534,8 @@ h3 {
 
 .refresh-button {
   width: 100%;
-  margin-top: 12px;
-  padding: 12px 14px;
+  margin-top: 10px;
+  padding: 10px 14px;
 }
 
 .refresh-button:hover:not(:disabled),
@@ -1435,7 +1435,7 @@ h3 {
 @media (max-width: 940px) {
   .hero {
     grid-template-columns: minmax(0, 1fr);
-    gap: 30px;
+    gap: 20px;
   }
 
   .hero-console {
@@ -1453,7 +1453,7 @@ h3 {
   }
 
   .topbar {
-    min-height: 70px;
+    min-height: 62px;
   }
 
   .topbar-meta {
@@ -1467,20 +1467,20 @@ h3 {
   }
 
   .hero {
-    padding: 42px 0 34px;
+    padding: 22px 0 24px;
   }
 
   .hero h1 {
-    font-size: clamp(2.85rem, 12.5vw, 4.3rem);
+    font-size: clamp(2.25rem, 10vw, 3.2rem);
   }
 
   .hero-subtitle {
-    margin-top: 17px;
-    font-size: 15px;
+    margin-top: 10px;
+    font-size: 14px;
   }
 
   .eyebrow {
-    margin-bottom: 16px;
+    margin-bottom: 10px;
   }
 
   .hero-console {
