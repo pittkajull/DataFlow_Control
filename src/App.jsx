@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import useDashboard from './hooks/useDashboard.js';
 import StatCards from './components/StatCards.jsx';
 import WorkflowTable from './components/WorkflowTable.jsx';
@@ -56,6 +56,8 @@ export default function App() {
   const [watchingId, setWatchingId] = useState(null);
   const [theme, setTheme] = useState(readStoredTheme);
   const [textScale, setTextScale] = useState(readStoredTextScale);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const settingsRef = useRef(null);
   const scaleIndex = TEXT_SCALES.indexOf(textScale);
 
   // Tema disimpan di <html data-theme> supaya semua token CSS ikut berganti.
@@ -80,6 +82,25 @@ export default function App() {
       // Abaikan bila penyimpanan tidak tersedia.
     }
   }, [textScale]);
+
+  // Tutup menu pengaturan saat klik di luar atau menekan Escape.
+  useEffect(() => {
+    if (!settingsOpen) return undefined;
+
+    const handlePointerDown = (event) => {
+      if (!settingsRef.current?.contains(event.target)) setSettingsOpen(false);
+    };
+    const handleKeyDown = (event) => {
+      if (event.key === 'Escape') setSettingsOpen(false);
+    };
+
+    document.addEventListener('pointerdown', handlePointerDown);
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('pointerdown', handlePointerDown);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [settingsOpen]);
 
   // Setelah workflow dijalankan, langsung buka panel pantau eksekusinya.
   const handleRun = async (id) => {
@@ -126,80 +147,107 @@ export default function App() {
                 <span className="signal-dot" aria-hidden="true" />
                 {syncState}
               </span>
-              <button
-                type="button"
-                className="theme-toggle"
-                onClick={() =>
-                  setTheme((current) => (current === 'dark' ? 'light' : 'dark'))
-                }
-                aria-pressed={theme === 'light'}
-                title={
-                  theme === 'dark'
-                    ? 'Ganti ke tema terang'
-                    : 'Ganti ke tema gelap'
-                }
-              >
-                <svg
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="1.8"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  aria-hidden="true"
+              <div className="settings" ref={settingsRef}>
+                <button
+                  type="button"
+                  className="settings-trigger"
+                  onClick={() => setSettingsOpen((open) => !open)}
+                  aria-expanded={settingsOpen}
+                  aria-controls="pengaturan-tampilan"
+                  aria-label="Pengaturan tampilan"
+                  title="Pengaturan tampilan"
                 >
-                  {theme === 'dark' ? (
-                    <>
-                      <circle cx="12" cy="12" r="4" />
-                      <path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" />
-                    </>
-                  ) : (
-                    <path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z" />
-                  )}
-                </svg>
-                <span className="theme-toggle-label">
-                  {theme === 'dark' ? 'Terang' : 'Gelap'}
-                </span>
-              </button>
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="1.8"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    aria-hidden="true"
+                  >
+                    <path d="M4 7h9M19 7h1M4 17h1M11 17h9" />
+                    <circle cx="16" cy="7" r="2.2" />
+                    <circle cx="8" cy="17" r="2.2" />
+                  </svg>
+                </button>
 
-              <div className="text-scale" role="group" aria-label="Ukuran teks">
-                <button
-                  type="button"
-                  className="text-scale-btn"
-                  onClick={() =>
-                    setTextScale(TEXT_SCALES[Math.max(scaleIndex - 1, 0)])
-                  }
-                  disabled={scaleIndex <= 0}
-                  aria-label="Perkecil ukuran teks"
-                  title="Perkecil ukuran teks"
-                >
-                  A−
-                </button>
-                <button
-                  type="button"
-                  className="text-scale-value"
-                  onClick={() => setTextScale(1)}
-                  title="Kembalikan ke 100%"
-                  aria-label={`Ukuran teks ${Math.round(textScale * 100)} persen, klik untuk kembali ke 100 persen`}
-                >
-                  {Math.round(textScale * 100)}%
-                </button>
-                <button
-                  type="button"
-                  className="text-scale-btn"
-                  onClick={() =>
-                    setTextScale(
-                      TEXT_SCALES[
-                        Math.min(scaleIndex + 1, TEXT_SCALES.length - 1)
-                      ],
-                    )
-                  }
-                  disabled={scaleIndex >= TEXT_SCALES.length - 1}
-                  aria-label="Perbesar ukuran teks"
-                  title="Perbesar ukuran teks"
-                >
-                  A+
-                </button>
+                {settingsOpen && (
+                  <div
+                    className="settings-menu"
+                    id="pengaturan-tampilan"
+                    role="dialog"
+                    aria-label="Pengaturan tampilan"
+                  >
+                    <div className="settings-row">
+                      <span className="settings-label">Tema</span>
+                      <div className="segmented">
+                        <button
+                          type="button"
+                          className={`seg-btn${theme === 'dark' ? ' is-active' : ''}`}
+                          aria-pressed={theme === 'dark'}
+                          onClick={() => setTheme('dark')}
+                        >
+                          Gelap
+                        </button>
+                        <button
+                          type="button"
+                          className={`seg-btn${theme === 'light' ? ' is-active' : ''}`}
+                          aria-pressed={theme === 'light'}
+                          onClick={() => setTheme('light')}
+                        >
+                          Terang
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="settings-row">
+                      <span className="settings-label">Ukuran teks</span>
+                      <div className="stepper">
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setTextScale(
+                              TEXT_SCALES[Math.max(scaleIndex - 1, 0)],
+                            )
+                          }
+                          disabled={scaleIndex <= 0}
+                          aria-label="Perkecil ukuran teks"
+                          title="Perkecil ukuran teks"
+                        >
+                          A−
+                        </button>
+                        <button
+                          type="button"
+                          className="stepper-value"
+                          onClick={() => setTextScale(1)}
+                          title="Kembalikan ke 100%"
+                          aria-label={`Ukuran teks ${Math.round(textScale * 100)} persen, klik untuk kembali ke 100 persen`}
+                        >
+                          {Math.round(textScale * 100)}%
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setTextScale(
+                              TEXT_SCALES[
+                                Math.min(
+                                  scaleIndex + 1,
+                                  TEXT_SCALES.length - 1,
+                                )
+                              ],
+                            )
+                          }
+                          disabled={scaleIndex >= TEXT_SCALES.length - 1}
+                          aria-label="Perbesar ukuran teks"
+                          title="Perbesar ukuran teks"
+                        >
+                          A+
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           </div>
