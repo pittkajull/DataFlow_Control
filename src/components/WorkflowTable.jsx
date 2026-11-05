@@ -146,16 +146,7 @@ export default function WorkflowTable({
                       }}
                       disabled={running}
                       title={running ? 'Sedang dijalankan…' : 'Jalankan workflow sekarang'}
-                      style={{
-                        padding: '4px 10px',
-                        borderRadius: '6px',
-                        border: '1px solid #2f3a4d',
-                        background: '#1e2330',
-                        color: '#cfe3ff',
-                        fontSize: '12px',
-                        cursor: running ? 'wait' : 'pointer',
-                        opacity: running ? 0.7 : 1,
-                      }}
+                      className="btn btn-accent"
                     >
                       {running ? 'Menjalankan…' : 'Jalankan'}
                     </button>

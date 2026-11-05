@@ -169,48 +169,29 @@ export default function ExecutionTable({
                     )}
                   </td>
                   <td>
-                    <div
-                      style={{
-                        display: 'flex',
-                        gap: '6px',
-                        flexWrap: 'wrap',
-                      }}
-                    >
-                    {running && (
+                    <div className="row-actions">
+                      {running && (
+                        <button
+                          type="button"
+                          className="btn btn-danger"
+                          onClick={() => onStop(execution.id)}
+                          disabled={stopping}
+                          title={
+                            stopping
+                              ? 'Sedang menghentikan…'
+                              : 'Hentikan eksekusi ini'
+                          }
+                        >
+                          {stopping ? 'Berhenti…' : 'Berhenti'}
+                        </button>
+                      )}
                       <button
                         type="button"
-                        onClick={() => onStop(execution.id)}
-                        disabled={stopping}
-                        title={stopping ? 'Sedang menghentikan…' : 'Hentikan eksekusi ini'}
-                        style={{
-                          padding: '4px 10px',
-                          borderRadius: '6px',
-                          border: '1px solid #7f2f30',
-                          background: '#2a1a1c',
-                          color: '#ff9d96',
-                          fontSize: '12px',
-                          cursor: stopping ? 'wait' : 'pointer',
-                          opacity: stopping ? 0.7 : 1,
-                        }}
+                        className="btn"
+                        onClick={() => onWatch(execution.id)}
                       >
-                        {stopping ? 'Berhenti…' : 'Berhenti'}
+                        Pantau
                       </button>
-                    )}
-                    <button
-                      type="button"
-                      onClick={() => onWatch(execution.id)}
-                      style={{
-                        padding: '4px 10px',
-                        borderRadius: '6px',
-                        border: '1px solid #2f3a4d',
-                        background: '#1e2330',
-                        color: '#cfe3ff',
-                        fontSize: '12px',
-                        cursor: 'pointer',
-                      }}
-                    >
-                      Pantau
-                    </button>
                     </div>
                   </td>
                 </tr>
