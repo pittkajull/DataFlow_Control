@@ -1,9 +1,21 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import useDashboard from './hooks/useDashboard.js';
 import StatCards from './components/StatCards.jsx';
 import WorkflowTable from './components/WorkflowTable.jsx';
 import ExecutionTable from './components/ExecutionTable.jsx';
 import WorkflowLogPanel from './components/WorkflowLogPanel.jsx';
+
+const THEME_KEY = 'dataflow-theme';
+
+function readStoredTheme() {
+  try {
+    const saved = window.localStorage.getItem(THEME_KEY);
+    if (saved === 'light' || saved === 'dark') return saved;
+  } catch {
+    // localStorage bisa diblokir browser; pakai tema bawaan.
+  }
+  return 'dark';
+}
 
 function formatClock(value) {
   if (!value) return '--:--:--';
@@ -30,6 +42,17 @@ export default function App() {
     setFilter,
   } = useDashboard();
   const [watchingId, setWatchingId] = useState(null);
+  const [theme, setTheme] = useState(readStoredTheme);
+
+  // Tema disimpan di <html data-theme> supaya semua token CSS ikut berganti.
+  useEffect(() => {
+    document.documentElement.dataset.theme = theme;
+    try {
+      window.localStorage.setItem(THEME_KEY, theme);
+    } catch {
+      // Abaikan bila penyimpanan tidak tersedia.
+    }
+  }, [theme]);
 
   // Setelah workflow dijalankan, langsung buka panel pantau eksekusinya.
   const handleRun = async (id) => {
@@ -80,6 +103,41 @@ export default function App() {
               <span className="topbar-network">Proxy n8n</span>
               <span className="topbar-rule" aria-hidden="true" />
               <span className="topbar-secure">Basic Auth</span>
+              <button
+                type="button"
+                className="theme-toggle"
+                onClick={() =>
+                  setTheme((current) => (current === 'dark' ? 'light' : 'dark'))
+                }
+                aria-pressed={theme === 'light'}
+                title={
+                  theme === 'dark'
+                    ? 'Ganti ke tema terang'
+                    : 'Ganti ke tema gelap'
+                }
+              >
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.8"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  aria-hidden="true"
+                >
+                  {theme === 'dark' ? (
+                    <>
+                      <circle cx="12" cy="12" r="4" />
+                      <path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" />
+                    </>
+                  ) : (
+                    <path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z" />
+                  )}
+                </svg>
+                <span className="theme-toggle-label">
+                  {theme === 'dark' ? 'Terang' : 'Gelap'}
+                </span>
+              </button>
             </div>
           </div>
 

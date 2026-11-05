@@ -1,13 +1,13 @@
 import useWorkflowMonitor from '../hooks/useWorkflowMonitor.js';
 
 const STATUS_META = {
-  idle: { label: 'Menunggu data', color: '#9aa7b6' },
-  running: { label: 'Berjalan', color: '#e5c485' },
-  success: { label: 'Sukses', color: '#86dcae' },
-  error: { label: 'Error', color: '#ef8f8f' },
-  crashed: { label: 'Crashed', color: '#ef8f8f' },
-  waiting: { label: 'Menunggu', color: '#9ec8ea' },
-  unknown: { label: 'Tidak diketahui', color: '#9aa7b6' },
+  idle: { label: 'Menunggu data', color: 'var(--text-muted)' },
+  running: { label: 'Berjalan', color: 'var(--amber)' },
+  success: { label: 'Sukses', color: 'var(--green)' },
+  error: { label: 'Error', color: 'var(--red)' },
+  crashed: { label: 'Crashed', color: 'var(--red)' },
+  waiting: { label: 'Menunggu', color: 'var(--info)' },
+  unknown: { label: 'Tidak diketahui', color: 'var(--text-muted)' },
 };
 
 function formatDuration(milliseconds) {
@@ -142,12 +142,12 @@ export default function LogViewer({ executionId, onClose }) {
               {nodes.map((node) => {
                 const color =
                   node.status === 'error'
-                    ? '#ef8f8f'
+                    ? 'var(--red)'
                     : node.status === 'running'
-                      ? '#e5c485'
+                      ? 'var(--amber)'
                       : node.status === 'pending'
-                        ? '#6c7887'
-                        : '#86dcae';
+                        ? 'var(--text-dim)'
+                        : 'var(--green)';
 
                 return (
                   <li key={node.name} style={styles.node}>
@@ -212,7 +212,7 @@ const styles = {
     alignItems: 'center',
     justifyContent: 'center',
     padding: '24px',
-    background: 'rgba(8, 11, 16, 0.7)',
+    background: 'var(--overlay)',
     backdropFilter: 'blur(3px)',
   },
   panel: {
@@ -220,9 +220,9 @@ const styles = {
     maxWidth: '560px',
     maxHeight: '86vh',
     overflowY: 'auto',
-    background: '#171d25',
-    color: '#e6ebf2',
-    border: '1px solid rgba(203, 213, 225, 0.14)',
+    background: 'var(--surface)',
+    color: 'var(--text)',
+    border: '1px solid var(--modal-line)',
     borderRadius: '14px',
     padding: '22px',
     boxShadow: '0 22px 55px rgba(0, 0, 0, 0.42)',
@@ -240,7 +240,7 @@ const styles = {
     fontSize: '11px',
     letterSpacing: '0.14em',
     textTransform: 'uppercase',
-    color: '#93a0af',
+    color: 'var(--text-muted)',
   },
   title: { margin: '4px 0 0', fontSize: '19px', fontWeight: 600 },
   badge: {
@@ -257,7 +257,7 @@ const styles = {
   closeButton: {
     background: 'transparent',
     border: 'none',
-    color: '#93a0af',
+    color: 'var(--text-muted)',
     fontSize: '22px',
     lineHeight: 1,
     cursor: 'pointer',
@@ -268,7 +268,7 @@ const styles = {
     width: '11px',
     height: '11px',
     border: '2px solid rgba(229, 196, 133, 0.25)',
-    borderTopColor: '#e5c485',
+    borderTopColor: 'var(--amber)',
     borderRadius: '50%',
     animation: 'spin 900ms linear infinite',
   },
@@ -276,30 +276,30 @@ const styles = {
     marginTop: '14px',
     padding: '10px 12px',
     borderRadius: '8px',
-    border: '1px solid rgba(239, 143, 143, 0.4)',
-    background: 'rgba(239, 143, 143, 0.1)',
-    color: '#f3b6b6',
+    border: '1px solid rgba(var(--red-rgb), 0.4)',
+    background: 'var(--red-soft)',
+    color: 'var(--red)',
     fontSize: '13px',
   },
   aiBox: {
     marginTop: '16px',
     padding: '14px',
     borderRadius: '10px',
-    background: '#131820',
-    border: '1px solid rgba(203, 213, 225, 0.14)',
+    background: 'var(--modal-inner)',
+    border: '1px solid var(--modal-line)',
   },
   aiTitle: {
     margin: 0,
     fontSize: '11px',
     letterSpacing: '0.14em',
     textTransform: 'uppercase',
-    color: '#93a0af',
+    color: 'var(--text-muted)',
   },
   aiText: {
     margin: '8px 0 0',
     fontSize: '14px',
     lineHeight: 1.65,
-    color: '#d3dbe6',
+    color: 'var(--text)',
   },
   listHead: {
     display: 'flex',
@@ -308,8 +308,8 @@ const styles = {
     marginTop: '18px',
     marginBottom: '8px',
   },
-  listTitle: { fontSize: '13px', fontWeight: 600, color: '#c5cfdb' },
-  listCount: { fontSize: '12px', color: '#93a0af' },
+  listTitle: { fontSize: '13px', fontWeight: 600, color: 'var(--text-soft)' },
+  listCount: { fontSize: '12px', color: 'var(--text-muted)' },
   list: { listStyle: 'none', margin: 0, padding: 0, display: 'grid', gap: '8px' },
   node: {
     display: 'flex',
@@ -317,8 +317,8 @@ const styles = {
     gap: '10px',
     padding: '10px 12px',
     borderRadius: '8px',
-    background: '#1d2530',
-    border: '1px solid rgba(203, 213, 225, 0.14)',
+    background: 'var(--modal-node)',
+    border: '1px solid var(--modal-line)',
   },
   dot: {
     flex: '0 0 auto',
@@ -329,15 +329,15 @@ const styles = {
   },
   nodeBody: { display: 'flex', flexDirection: 'column', gap: '2px', minWidth: 0 },
   nodeName: { fontSize: '14px', fontWeight: 500, wordBreak: 'break-word' },
-  nodeMeta: { fontSize: '12px', color: '#93a0af' },
-  nodeError: { fontSize: '12px', color: '#f2a9a9', wordBreak: 'break-word' },
-  empty: { margin: 0, fontSize: '13px', color: '#93a0af' },
+  nodeMeta: { fontSize: '12px', color: 'var(--text-muted)' },
+  nodeError: { fontSize: '12px', color: 'var(--red)', wordBreak: 'break-word' },
+  empty: { margin: 0, fontSize: '13px', color: 'var(--text-muted)' },
   progressBox: {
     marginTop: '16px',
     padding: '14px',
     borderRadius: '10px',
-    background: '#131820',
-    border: '1px solid rgba(203, 213, 225, 0.14)',
+    background: 'var(--modal-inner)',
+    border: '1px solid var(--modal-line)',
   },
   progressHead: {
     display: 'flex',
@@ -350,21 +350,21 @@ const styles = {
     fontWeight: 600,
     letterSpacing: '0.14em',
     textTransform: 'uppercase',
-    color: '#93a0af',
+    color: 'var(--text-muted)',
   },
-  progressValue: { fontSize: '12px', color: '#c5cfdb' },
+  progressValue: { fontSize: '12px', color: 'var(--text-soft)' },
   progressTrack: {
     marginTop: '10px',
     height: '6px',
     borderRadius: '999px',
-    background: '#1d2530',
+    background: 'var(--modal-node)',
     overflow: 'hidden',
   },
   progressFill: {
     display: 'block',
     height: '100%',
     borderRadius: '999px',
-    background: '#a3d98b',
+    background: 'var(--lime)',
     transition: 'width 400ms ease',
   },
   currentBox: {
@@ -374,16 +374,16 @@ const styles = {
     marginTop: '12px',
     padding: '10px 12px',
     borderRadius: '8px',
-    background: '#1e2632',
-    border: '1px solid rgba(203, 213, 225, 0.14)',
+    background: 'var(--modal-raised)',
+    border: '1px solid var(--modal-line)',
   },
   currentBody: { minWidth: 0 },
-  currentTitle: { fontSize: '13px', fontWeight: 600, color: '#e6ebf2' },
+  currentTitle: { fontSize: '13px', fontWeight: 600, color: 'var(--text)' },
   currentText: {
     margin: '4px 0 0',
     fontSize: '13px',
     lineHeight: 1.55,
-    color: '#aab6c4',
+    color: 'var(--text-soft)',
   },
   nextDot: {
     display: 'inline-block',
@@ -391,19 +391,19 @@ const styles = {
     height: '11px',
     marginTop: '3px',
     borderRadius: '50%',
-    border: '2px solid #93a0af',
+    border: '2px solid var(--text-muted)',
     flexShrink: 0,
   },
   hintText: {
     margin: '10px 0 0',
     fontSize: '12px',
     lineHeight: 1.55,
-    color: '#93a0af',
+    color: 'var(--text-muted)',
   },
   nodeExplain: {
     fontSize: '12px',
     lineHeight: 1.5,
-    color: '#aab6c4',
+    color: 'var(--text-soft)',
     wordBreak: 'break-word',
   },
   footer: {
@@ -415,27 +415,27 @@ const styles = {
   secondaryButton: {
     padding: '8px 14px',
     borderRadius: '8px',
-    border: '1px solid rgba(203, 213, 225, 0.14)',
+    border: '1px solid var(--modal-line)',
     background: 'transparent',
-    color: '#c5cfdb',
+    color: 'var(--text-soft)',
     fontSize: '13px',
     cursor: 'pointer',
   },
   dangerButton: {
     padding: '8px 14px',
     borderRadius: '8px',
-    border: '1px solid rgba(239, 143, 143, 0.4)',
-    background: 'rgba(239, 143, 143, 0.1)',
-    color: '#f2a9a9',
+    border: '1px solid rgba(var(--red-rgb), 0.4)',
+    background: 'var(--red-soft)',
+    color: 'var(--red)',
     fontSize: '13px',
     cursor: 'pointer',
   },
   primaryButton: {
     padding: '8px 16px',
     borderRadius: '8px',
-    border: '1px solid #a3d98b',
-    background: '#a3d98b',
-    color: '#12180f',
+    border: '1px solid var(--lime)',
+    background: 'var(--lime)',
+    color: 'var(--on-accent)',
     fontSize: '13px',
     fontWeight: 600,
     cursor: 'pointer',

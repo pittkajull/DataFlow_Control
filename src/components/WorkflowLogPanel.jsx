@@ -1,6 +1,10 @@
 import { useWorkflowLogs } from '../hooks/useWorkflowLogs.js';
 
-const STATUS_COLOR = { running: '#e5c485', success: '#86dcae', error: '#ef8f8f' };
+const STATUS_COLOR = {
+  running: 'var(--amber)',
+  success: 'var(--green)',
+  error: 'var(--red)',
+};
 
 function timeAgo(iso) {
   const diff = Math.floor((Date.now() - new Date(iso)) / 1000);
@@ -16,8 +20,8 @@ export default function WorkflowLogPanel({ workflowName }) {
   return (
     <div
       style={{
-        background: '#161b22',
-        border: '1px solid rgba(203, 213, 225, 0.1)',
+        background: 'var(--surface)',
+        border: '1px solid var(--line)',
         borderRadius: 18,
         padding: '18px 20px',
         marginTop: 18,
@@ -27,7 +31,7 @@ export default function WorkflowLogPanel({ workflowName }) {
         style={{
           fontSize: 11,
           fontWeight: 600,
-          color: '#a3d98b',
+          color: 'var(--lime)',
           textTransform: 'uppercase',
           letterSpacing: '0.08em',
           marginBottom: 12,
@@ -40,7 +44,7 @@ export default function WorkflowLogPanel({ workflowName }) {
         <div
           style={{
             fontSize: 13,
-            color: '#8e9aa9',
+            color: 'var(--text-muted)',
             textAlign: 'center',
             padding: '18px 0',
           }}
@@ -65,8 +69,8 @@ export default function WorkflowLogPanel({ workflowName }) {
                 gap: 10,
                 alignItems: 'flex-start',
                 padding: '10px 12px',
-                background: '#1b222c',
-                border: '1px solid rgba(203, 213, 225, 0.08)',
+                background: 'var(--surface-raised)',
+                border: '1px solid var(--line)',
                 borderRadius: 9,
               }}
             >
@@ -75,16 +79,16 @@ export default function WorkflowLogPanel({ workflowName }) {
                   width: 7,
                   height: 7,
                   borderRadius: '50%',
-                  background: STATUS_COLOR[log.status] || '#8e9aa9',
+                  background: STATUS_COLOR[log.status] || 'var(--text-dim)',
                   marginTop: 6,
                   flexShrink: 0,
                 }}
               />
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: 13, color: '#e0e7ef', lineHeight: 1.6 }}>
+                <div style={{ fontSize: 13, color: 'var(--text)', lineHeight: 1.6 }}>
                   {log.message}
                 </div>
-                <div style={{ fontSize: 11.5, color: '#8e9aa9', marginTop: 3 }}>
+                <div style={{ fontSize: 11.5, color: 'var(--text-muted)', marginTop: 3 }}>
                   {log.nodeName} · {timeAgo(log.timestamp)}
                 </div>
               </div>
