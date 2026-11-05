@@ -70,7 +70,6 @@ export default function ExecutionTable({
     <section className="panel" aria-labelledby="execution-panel-title">
       <header className="panel-header">
         <div className="panel-heading">
-          <span className="panel-kicker">03 / Log eksekusi</span>
           <h2 id="execution-panel-title" className="panel-title">
             Eksekusi terbaru
             {filterLabel && <span className="title-filter">/ {filterLabel}</span>}
@@ -79,10 +78,6 @@ export default function ExecutionTable({
             {filterId
               ? 'Filter aktif. Klik workflow yang sama lagi untuk reset.'
               : '20 eksekusi terbaru dari seluruh workflow.'}
-            <span className="mobile-scroll-hint">
-              {' '}
-              Geser tabel untuk melihat kolom lainnya.
-            </span>
           </p>
         </div>
         <span className="count-pill">

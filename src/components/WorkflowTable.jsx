@@ -36,7 +36,6 @@ export default function WorkflowTable({
     <section className="panel" aria-labelledby="workflow-panel-title">
       <header className="panel-header">
         <div className="panel-heading">
-          <span className="panel-kicker">02 / Workflow</span>
           <h2 id="workflow-panel-title" className="panel-title">
             Kontrol workflow
           </h2>

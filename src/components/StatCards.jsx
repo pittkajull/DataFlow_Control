@@ -62,7 +62,6 @@ export default function StatCards({ workflows, executions }) {
       caption: total ? `${active} workflow sedang aktif` : 'Belum ada workflow',
       tone: 'neutral',
       icon: 'total',
-      ratio: total ? 1 : 0,
     },
     {
       key: 'active',
@@ -71,7 +70,6 @@ export default function StatCards({ workflows, executions }) {
       caption: `Dari ${total} workflow terdaftar`,
       tone: 'lime',
       icon: 'active',
-      ratio: total ? active / total : 0,
     },
     {
       key: 'success',
@@ -80,7 +78,6 @@ export default function StatCards({ workflows, executions }) {
       caption: `Dari ${recent.length} eksekusi terakhir`,
       tone: 'green',
       icon: 'success',
-      ratio: recent.length ? success / recent.length : 0,
     },
     {
       key: 'failed',
@@ -89,7 +86,6 @@ export default function StatCards({ workflows, executions }) {
       caption: 'Status error dan crashed',
       tone: 'red',
       icon: 'failed',
-      ratio: recent.length ? failed / recent.length : 0,
     },
   ];
 
@@ -110,9 +106,6 @@ export default function StatCards({ workflows, executions }) {
           </div>
           <strong className="stat-value">{card.value}</strong>
           <p className="stat-caption">{card.caption}</p>
-          <div className="stat-meter" aria-hidden="true">
-            <span style={{ width: `${Math.min(card.ratio, 1) * 100}%` }} />
-          </div>
         </article>
       ))}
     </div>

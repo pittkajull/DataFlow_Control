@@ -126,10 +126,6 @@ export default function App() {
                 <span className="signal-dot" aria-hidden="true" />
                 {syncState}
               </span>
-              <span className="topbar-rule" aria-hidden="true" />
-              <span className="topbar-network">Proxy n8n</span>
-              <span className="topbar-rule" aria-hidden="true" />
-              <span className="topbar-secure">Basic Auth</span>
               <button
                 type="button"
                 className="theme-toggle"
@@ -210,10 +206,6 @@ export default function App() {
 
           <div className="hero">
             <div className="hero-copy">
-              <p className="eyebrow">
-                <span>Panel kendali</span>
-                <span className="eyebrow-index">/ 01</span>
-              </p>
               <h1>
                 DataFlow <span>Control</span>
               </h1>
@@ -222,38 +214,21 @@ export default function App() {
               </p>
             </div>
 
-            <aside className="hero-console" aria-label="Status sinkronisasi">
-              <div className="console-head">
-                <span className="panel-kicker">Terminal sinkron</span>
-                <span className={`console-state${error ? ' has-error' : ''}`}>
-                  <span className="signal-dot" aria-hidden="true" />
-                  {error ? 'TERPUTUS' : loading ? 'SINKRON' : 'AKTIF'}
-                </span>
-              </div>
-
-              <div className="console-readout" aria-live="polite">
+            <div className="hero-sync">
+              <span className="hero-sync-time" aria-live="polite">
                 <span>Diperbarui</span>
                 <strong>{formatClock(lastUpdate)}</strong>
-              </div>
-
-              <div className="console-cadence">
-                <span>Muat otomatis</span>
-                <span className="cadence-track" aria-hidden="true">
-                  <i />
-                </span>
-                <span>15 detik</span>
-              </div>
-
+              </span>
               <button
                 type="button"
-                className="refresh-button"
+                className="btn hero-refresh"
                 onClick={muat}
                 disabled={loading}
               >
                 <svg
                   className={loading ? 'is-spinning' : ''}
-                  width="16"
-                  height="16"
+                  width="15"
+                  height="15"
                   viewBox="0 0 24 24"
                   fill="none"
                   stroke="currentColor"
@@ -265,9 +240,9 @@ export default function App() {
                   <path d="M20 11a8 8 0 1 0-2.3 6.7" />
                   <path d="M20 4v7h-7" />
                 </svg>
-                {loading ? 'Memuat data' : 'Refresh'}
+                {loading ? 'Memuat' : 'Refresh'}
               </button>
-            </aside>
+            </div>
           </div>
         </header>
 
@@ -289,10 +264,8 @@ export default function App() {
         <main id="main">
           <section className="stats-section" aria-labelledby="stats-heading">
             <div className="section-bar">
-              <span className="section-index">01</span>
               <h2 id="stats-heading">Ringkasan operasi</h2>
               <span className="section-line" aria-hidden="true" />
-              <span className="section-meta">data terkini</span>
             </div>
             <StatCards workflows={workflows} executions={executions} />
           </section>
